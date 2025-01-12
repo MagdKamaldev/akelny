@@ -93,8 +93,6 @@ class MainNavigationPageState extends State<MainNavigationPage> {
     final List<Widget> pages = [
       HomeScreen(onSave: _saveRecipe),
       SavedScreen(
-        savedRecipes: savedRecipes,
-        onUnsave: _unsaveRecipe,
         onSave: _saveRecipe,
       ),
       const LeftoverManagementScreen(),

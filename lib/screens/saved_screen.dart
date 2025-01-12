@@ -4,124 +4,150 @@ import 'recipe_details_screen.dart'; // Import the Recipe Details Screen
 import '../core/auth_service.dart'; // Import AuthService for backend integration
 
 class SavedScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> savedRecipes;
-  final void Function(Map<String, dynamic>) onUnsave;
-  final void Function(Map<String, dynamic>) onSave;
-
-  const SavedScreen({
-    super.key,
-    required this.savedRecipes,
-    required this.onUnsave,
-    required this.onSave,
-  });
+  final Function(Map<String, dynamic>) onSave;
+  const SavedScreen({super.key, required this.onSave});
 
   @override
-  State<SavedScreen> createState() => _SavedScreenState();
+  State<SavedScreen> createState() => _SavedRecipesState();
 }
 
-class _SavedScreenState extends State<SavedScreen> {
-  final AuthService _authService = AuthService(); // Initialize AuthService
-  late List<Map<String, dynamic>> savedRecipes;
-  bool isLoading = true;
+class _SavedRecipesState extends State<SavedScreen> {
+  List<Map<String, dynamic>> recipes = [];
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-    savedRecipes = widget.savedRecipes; // Initialize with provided recipes
-    _fetchSavedRecipes();
+    fetchSavedRecipes();
   }
 
-  // Fetch saved recipes from the backend
-  Future<void> _fetchSavedRecipes() async {
+  Future<void> fetchSavedRecipes() async {
     try {
-      final recipes = await _authService.getSavedRecipes();
+      final savedRecipes = await AuthService().getSavedRecipes();
       setState(() {
-        savedRecipes = recipes;
-        isLoading = false;
+        recipes = savedRecipes;
       });
     } catch (error) {
-      setState(() {
-        isLoading = false;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch saved recipes: $error')),
-      );
-    }
-  }
-
-  // Remove recipe from saved list and update backend
-  Future<void> _unsaveRecipe(Map<String, dynamic> recipe) async {
-    try {
-      await _authService.unsaveRecipe(recipe['id']);
-      setState(() {
-        savedRecipes.remove(recipe);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Recipe removed from saved successfully')),
-      );
-      widget.onUnsave(recipe); // Notify parent about unsave
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to unsave recipe: $error')),
+        SnackBar(content: Text('Failed to fetch SavedRecipes: $error')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    return savedRecipes.isEmpty
+    return recipes.isEmpty
         ? Center(
-      child: Text(
-        "No saved recipes yet.",
-        style: GoogleFonts.lato(fontSize: 16, color: Colors.black54),
-      ),
-    )
+            child: Text(
+              'No Saved Recipes available !',
+              style: GoogleFonts.lato(fontSize: 16, color: Colors.black54),
+            ),
+          )
         : ListView.builder(
-      itemCount: savedRecipes.length,
-      itemBuilder: (context, index) {
-        final recipe = savedRecipes[index];
-        return _buildSavedRecipeCard(context, recipe);
-      },
-    );
+            itemCount: recipes.length,
+            itemBuilder: (context, index) {
+              return _buildRecipeCard(context, recipes[index]);
+            },
+          );
   }
 
-  Widget _buildSavedRecipeCard(BuildContext context, Map<String, dynamic> recipe) {
+  Widget _buildRecipeCard(BuildContext context, Map<String, dynamic> recipe) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Card(
+        color: const Color(0xFFF1F8E9),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         elevation: 5,
-        child: ListTile(
-          leading: Image.network(
-            recipe['image'],
-            width: 50,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.image_not_supported),
-          ),
-          title: Text(recipe['title']),
-          subtitle: Text('Time: ${recipe['time']}'),
+        child: InkWell(
           onTap: () {
-            // Navigate to Recipe Details Screen
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => RecipeDetailsScreen(
                   recipe: recipe,
-                  onSave: widget.onSave, // Notify parent after save action
+                  onSave: widget.onSave,
                 ),
               ),
             );
           },
-          trailing: IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _unsaveRecipe(recipe), // Remove recipe
+          borderRadius: BorderRadius.circular(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Recipe Image
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(15)),
+                child: Image.network(
+                  recipe['image'] != null
+                      ? "$baseUrl${recipe['image']}"
+                      : "https://theninjacue.com/wp-content/uploads/2024/04/13-erin_hungsberg-0r4a3413-ninjacue-oven-baby-back-ribs-24-768x960.jpg", // Fallback image
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Recipe Name
+                    Text(
+                      recipe['name'] ?? "Recipe Name",
+                      style: GoogleFonts.lato(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+
+                    // Category and Rating
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Category
+                        Row(
+                          children: [
+                            const Icon(Icons.category,
+                                color: Colors.grey, size: 16),
+                            const SizedBox(width: 5),
+                            Text(
+                              recipe['category'] ?? "Other",
+                              style: GoogleFonts.lato(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Rating
+                        Row(
+                          children: [
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 16),
+                            const SizedBox(width: 5),
+                            Text(
+                              recipe['rating'] != null
+                                  ? '${recipe['rating']} stars'
+                                  : 'No ratings',
+                              style: GoogleFonts.lato(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Action Buttons (Like and Save)
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
