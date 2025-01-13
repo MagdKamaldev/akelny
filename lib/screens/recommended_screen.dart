@@ -64,8 +64,7 @@ class _RecommendedRecipesState extends State<RecommendedRecipes> {
             context,
             MaterialPageRoute(
               builder: (context) => RecipeDetailsScreen(
-                recipe: recipe,
-                onSave: widget.onSave,
+               name: recipe['name'],
               ),
             ),
           );

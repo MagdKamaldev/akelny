@@ -4,8 +4,7 @@ import 'recipe_details_screen.dart'; // Import the Recipe Details Screen
 import '../core/auth_service.dart'; // Import AuthService for backend integration
 
 class SavedScreen extends StatefulWidget {
-  final Function(Map<String, dynamic>) onSave;
-  const SavedScreen({super.key, required this.onSave});
+  const SavedScreen({super.key});
 
   @override
   State<SavedScreen> createState() => _SavedRecipesState();
@@ -13,44 +12,66 @@ class SavedScreen extends StatefulWidget {
 
 class _SavedRecipesState extends State<SavedScreen> {
   List<Map<String, dynamic>> recipes = [];
-
-
+  bool isLoading = false;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     fetchSavedRecipes();
   }
 
   Future<void> fetchSavedRecipes() async {
+    setState(() {
+      isLoading = true; // Start loading
+    });
+
     try {
       final savedRecipes = await AuthService().getSavedRecipes();
       setState(() {
-        recipes = savedRecipes;
+        // Assuming the response is a list of saved recipe objects
+        recipes = List<Map<String, dynamic>>.from(savedRecipes.map((item) => item['recipe']));
       });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch SavedRecipes: $error')),
+        SnackBar(content: Text('Failed to fetch saved recipes: $error')),
       );
+    } finally {
+      setState(() {
+        isLoading = false; // Stop loading
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return recipes.isEmpty
-        ? Center(
-            child: Text(
-              'No Saved Recipes available !',
-              style: GoogleFonts.lato(fontSize: 16, color: Colors.black54),
-            ),
-          )
-        : ListView.builder(
-            itemCount: recipes.length,
-            itemBuilder: (context, index) {
-              return _buildRecipeCard(context, recipes[index]);
-            },
-          );
+    return Scaffold(
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(), // Show loading indicator
+            )
+          : recipes.isEmpty
+              ? Center(
+                  child: Text(
+                    'No Saved Recipes available!',
+                    style: GoogleFonts.lato(fontSize: 16, color: Colors.black54),
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: ListView.builder(
+                    itemCount: recipes.length,
+                    itemBuilder: (context, index) {
+                      return _buildRecipeCard(context, recipes[index]);
+                    },
+                  ),
+                ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: fetchSavedRecipes,
+        backgroundColor: Colors.green,
+        tooltip: 'Refresh Recipes',
+        child: const Icon(Icons.refresh, color: Colors.white),
+      ),
+    );
   }
 
   Widget _buildRecipeCard(BuildContext context, Map<String, dynamic> recipe) {
@@ -66,8 +87,7 @@ class _SavedRecipesState extends State<SavedScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => RecipeDetailsScreen(
-                  recipe: recipe,
-                  onSave: widget.onSave,
+                  name: recipe['name'] ?? "Unknown Recipe",
                 ),
               ),
             );
@@ -78,8 +98,7 @@ class _SavedRecipesState extends State<SavedScreen> {
             children: [
               // Recipe Image
               ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(15)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                 child: Image.network(
                   recipe['image'] != null
                       ? "$baseUrl${recipe['image']}"
@@ -131,8 +150,8 @@ class _SavedRecipesState extends State<SavedScreen> {
                                 color: Colors.amber, size: 16),
                             const SizedBox(width: 5),
                             Text(
-                              recipe['rating'] != null
-                                  ? '${recipe['rating']} stars'
+                              recipe['average_rating'] != null
+                                  ? '${recipe['average_rating']} stars'
                                   : 'No ratings',
                               style: GoogleFonts.lato(
                                 fontSize: 14,
@@ -143,9 +162,6 @@ class _SavedRecipesState extends State<SavedScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-
-                    // Action Buttons (Like and Save)
                   ],
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:graduation/core/auth_service.dart';
 import 'package:graduation/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'saved_screen.dart';
@@ -64,21 +65,16 @@ class MainNavigationPageState extends State<MainNavigationPage> {
         return "Aklny";
     }
   }
-
-  // Top actions for the AppBar (Only for Home Screen)
+  
   List<Widget> _buildTopActions() {
     if (_currentIndex == 0) {
       return [
         IconButton(
-          icon: Image.asset(
-            'assets/chatbot_icon.png', // Custom chatbot icon
-            width: 28, // Adjust size if needed
-            height: 28,
-          ),
+          icon: Icon(Icons.chat_outlined,color: Colors.white,),
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+              MaterialPageRoute(builder: (context) => WebSocketTestScreen()),
             );
           },
         ),
@@ -92,12 +88,10 @@ class MainNavigationPageState extends State<MainNavigationPage> {
     // Pages to render for each tab
     final List<Widget> pages = [
       HomeScreen(onSave: _saveRecipe),
-      SavedScreen(
-        onSave: _saveRecipe,
-      ),
+      SavedScreen(),
       const LeftoverManagementScreen(),
       RecommendedRecipes(
-        onSave: (Map<String,dynamic> recipe) {},
+        onSave: (Map<String, dynamic> recipe) {},
       ),
       UserProfilePage(
         userData: null,
@@ -123,7 +117,7 @@ class MainNavigationPageState extends State<MainNavigationPage> {
         elevation: 0,
         toolbarHeight: 56,
         leading: IconButton(
-            onPressed: () async{
+            onPressed: () async {
               Navigator.pushReplacementNamed(context, '/signin');
               SharedPreferences prefs = await SharedPreferences.getInstance();
               prefs.remove("auth_token");

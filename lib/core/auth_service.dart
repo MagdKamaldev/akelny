@@ -15,7 +15,8 @@ class AuthService {
   static const String signInUrl = '$baseUrl/api/signin/';
   static const String userProfileUrl = '$baseUrl/api/user/';
   static const String updateUserProfileUrl = '$baseUrl/api/user/update/';
-  static const String saveRecipeUrl = '$baseUrl/api/recipes/';
+  static const String saveRecipeUrl = '$baseUrl/api/save-recipe/';
+  static const String getRecipeDetailsUrl = '$baseUrl/api/recipe-detail/';
   static const String recommendedRecipesUrl = '$baseUrl/api/recommendations/';
   static const String getSavedRecipesUrl = '$baseUrl/api/saved-recipes/';
   static const String unsaveRecipeUrl = '$baseUrl/api/unsave-recipe/';
@@ -57,6 +58,17 @@ class AuthService {
     }
   }
 
+  Future<Map<String,dynamic>> getRecipeDetails(String name)async{
+    final response = await http.get(
+      Uri.parse("$getRecipeDetailsUrl$name/"),
+    );
+    
+    if (_handleResponse(response, 'Fetch User Data')) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception("Failed to fetch user data.");
+  }
+
   Future<Map<String, dynamic>> getUserData() async {
     final token = await getToken();
     final response = await http.get(
@@ -90,7 +102,6 @@ class AuthService {
   }
 
   Future<List<Map<String, dynamic>>> getRecommendedRecipes() async{
-    final token = await getToken();
     final headers = await _headers();
     final response = await http.get(
       Uri.parse(recommendedRecipesUrl),
@@ -102,18 +113,19 @@ class AuthService {
     throw Exception("Failed to fetch recommended recipes.");
   }
 
-  Future<void> saveRecipe(Map<String, dynamic> recipeData, File imageFile) async {
-    final token = await getToken();
-    final request = http.MultipartRequest('POST', Uri.parse(saveRecipeUrl))
-      ..headers['Authorization'] = 'Bearer $token'
-      ..fields.addAll(recipeData.map((key, value) => MapEntry(key, value.toString())))
-      ..files.add(await http.MultipartFile.fromPath('image', imageFile.path));
-    final response = await request.send();
-    if (response.statusCode == 201) {
-      logger.i("Recipe saved successfully.");
-    } else {
-      logger.e("Failed to save recipe. Status code: ${response.statusCode}");
-      throw Exception("Failed to save recipe.");
+  Future<void> saveRecipe(String name,BuildContext context) async {
+   final headers = await _headers();
+    final response = await http.post(
+      Uri.parse(saveRecipeUrl),
+      headers: headers,
+      body: jsonEncode({
+        "recipe_name" : name
+      }),
+    );
+    if (_handleResponse(response, 'Sign-In')) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('saved successfully')),
+      );
     }
   }
 

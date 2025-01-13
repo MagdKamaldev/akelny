@@ -1,46 +1,54 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../core/auth_service.dart'; // Import AuthService for API integration
+import 'package:web_socket_channel/web_socket_channel.dart';
 
-class ChatbotScreen extends StatefulWidget {
-  const ChatbotScreen({super.key});
+class WebSocketTestScreen extends StatefulWidget {
+  const WebSocketTestScreen({Key? key}) : super(key: key);
 
   @override
-  _ChatbotScreenState createState() => _ChatbotScreenState();
+  State<WebSocketTestScreen> createState() => _WebSocketTestScreenState();
 }
 
-class _ChatbotScreenState extends State<ChatbotScreen> {
+class _WebSocketTestScreenState extends State<WebSocketTestScreen> {
+  late WebSocketChannel channel;
   final TextEditingController _controller = TextEditingController();
-  final List<Map<String, String>> _messages = [];
-  final AuthService _authService = AuthService(); // AuthService instance
-  bool _isLoading = false;
+  final List<Map<String, String>> messages =
+      []; // Stores user and server messages
 
-  // Function to send a message
-  Future<void> _sendMessage() async {
-    final userMessage = _controller.text.trim();
-    if (userMessage.isEmpty) return;
+  @override
+  void initState() {
+    super.initState();
+    channel = WebSocketChannel.connect(
+      Uri.parse(
+          'ws://127.0.0.1:8000/api/chatbot/'), // Replace with your WebSocket endpoint
+    );
 
-    setState(() {
-      _messages.add({"sender": "User", "message": userMessage});
-      _controller.clear();
-      _isLoading = true;
+    channel.stream.listen((data) {
+      final parsedData = jsonDecode(data);
+
+      // Add server response to messages list
+      setState(() {
+        messages.add({'sender': 'server', 'message': parsedData['response']});
+      });
     });
+  }
 
-    try {
-      final botResponse = await _authService.sendMessageToChatbot(userMessage);
+  @override
+  void dispose() {
+    channel.sink.close();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void sendMessage(String message) {
+    if (message.isNotEmpty) {
       setState(() {
-        _messages.add({"sender": "Bot", "message": botResponse});
+        messages.add({
+          'sender': 'user',
+          'message': message
+        }); // Add user message to messages list
       });
-    } catch (error) {
-      setState(() {
-        _messages.add({
-          "sender": "Bot",
-          "message": "Sorry, there was an error. Please try again."
-        });
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      channel.sink.add(jsonEncode({'message': message}));
     }
   }
 
@@ -48,57 +56,38 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2E7D32),
-        title: const Text(
-          'AI Chatbot',
-          style: TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text('Akelny Chatbot'),
+        centerTitle: true,
+        backgroundColor: Colors.green,
       ),
       body: Column(
         children: [
-          // Chat messages list
           Expanded(
             child: ListView.builder(
-              itemCount: _messages.length,
+              padding: const EdgeInsets.all(16),
+              itemCount: messages.length,
               itemBuilder: (context, index) {
-                final message = _messages[index];
-                final isUserMessage = message['sender'] == "User";
-
-                return Container(
-                  alignment: isUserMessage
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 5.0,
-                    horizontal: 10.0,
-                  ),
+                final message = messages[index];
+                final isUser = message['sender'] == 'user';
+                return Align(
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    padding: const EdgeInsets.all(12.0),
+                    margin: const EdgeInsets.symmetric(vertical: 5),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isUserMessage
-                          ? Colors.green.shade100
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12.0),
+                      color: isUser ? Colors.green[100] : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      message['message'] ?? '',
-                      style: const TextStyle(fontSize: 16.0),
+                      message['message']!,
+                      style: const TextStyle(fontSize: 16),
                     ),
                   ),
                 );
               },
             ),
           ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
-          // Input field and send button
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -107,24 +96,35 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
+                      hintText: 'Enter Message',
                       contentPadding: const EdgeInsets.symmetric(
-                        vertical: 10.0,
-                        horizontal: 16.0,
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Color(0xFF2E7D32)),
-                  onPressed: _isLoading ? null : _sendMessage,
+                ElevatedButton(
+                  onPressed: () {
+                    final message = _controller.text.trim();
+                    sendMessage(message);
+                    _controller.clear();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Send'),
                 ),
               ],
             ),
