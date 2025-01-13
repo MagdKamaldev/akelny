@@ -1,44 +1,41 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:graduation/main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-class LeftoverManagementScreen extends StatefulWidget {
-  const LeftoverManagementScreen({super.key});
+class LeftoverReportScreen extends StatefulWidget {
+  const LeftoverReportScreen({Key? key}) : super(key: key);
 
   @override
-  LeftoverManagementScreenState createState() =>
-      LeftoverManagementScreenState();
+  _LeftoverReportScreenState createState() => _LeftoverReportScreenState();
 }
 
-class LeftoverManagementScreenState extends State<LeftoverManagementScreen> {
-  final ImagePicker _picker = ImagePicker();
-  XFile? _selectedImage;
-  Map<String, dynamic>? _recipeSuggestions; // Store API response here
+class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
+  File? _selectedImage;
   bool _isLoading = false;
+  List<dynamic>? _report;
 
-  // Function to pick an image from the gallery or camera
-  Future<void> _pickImage(ImageSource source) async {
-    final XFile? image = await _picker.pickImage(source: source);
-    if (!mounted) return;
-    if (image != null) {
+  // Function to pick an image
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
       setState(() {
-        _selectedImage = image;
-        _recipeSuggestions = null; // Clear previous suggestions
+        _selectedImage = File(pickedFile.path);
+        _report = null; // Clear previous report
       });
     }
   }
 
-  // Function to send the image to the ML model API
-  Future<void> _getRecipeSuggestions() async {
+  // Function to upload the image and get the response
+  Future<void> _uploadImage() async {
     if (_selectedImage == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select an image first!")),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an image first')),
+      );
       return;
     }
 
@@ -47,154 +44,123 @@ class LeftoverManagementScreenState extends State<LeftoverManagementScreen> {
     });
 
     try {
-      // Replace with your ML model API endpoint
-      final Uri apiUrl = Uri.parse('https://your-api-endpoint.com/predict');
-      final request = http.MultipartRequest('POST', apiUrl);
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://0.0.0.0:8000/api/generate-leftover-report/'),
+      );
+      request.headers.addAll(
+        {'Authorization': 'Bearer $token'}
+      );
+      request.files.add(
+        await http.MultipartFile.fromPath('image', _selectedImage!.path),
+      );
 
-      // Add the image file to the request
-      request.files.add(await http.MultipartFile.fromPath(
-        'image',
-        _selectedImage!.path,
-      ));
-
-      // Send the request
       final response = await request.send();
-      final responseData = await http.Response.fromStream(response);
+
+      print(response.statusCode);
 
       if (response.statusCode == 200) {
-        // Parse the response JSON
+        final responseData = await response.stream.bytesToString();
         setState(() {
-          _recipeSuggestions = json.decode(responseData.body);
+          _report = jsonDecode(responseData)['reports'];
         });
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to get recipe suggestions.")),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("An error occurred. Please try again.")),
+          const SnackBar(content: Text('Failed to fetch report')),
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Manage your leftovers efficiently!',
-            style: GoogleFonts.lato(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-
-          // Display selected image or placeholder
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey, width: 1.0),
-              ),
-              child: _selectedImage == null
-                  ? const Center(
-                child: Text(
-                  "No image selected",
-                  style: TextStyle(fontSize: 16),
-                ),
-              )
-                  : ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  File(_selectedImage!.path),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Buttons for picking images
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.camera),
-                icon: const Icon(Icons.camera_alt),
-                label: const Text("Camera"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                icon: const Icon(Icons.photo_library),
-                label: const Text("Gallery"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E7D32),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Get Recipe Suggestions button
-          ElevatedButton(
-            onPressed: _isLoading ? null : _getRecipeSuggestions,
-            child: _isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text("Get Recipe Suggestions"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7D32),
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              textStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Display recipe suggestions
-          if (_recipeSuggestions != null)
-            Expanded(
-              child: ListView(
-                children: [
-                  Text(
-                    "Suggested Recipe:",
-                    style: GoogleFonts.lato(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Leftover Report'),
+        backgroundColor: Colors.green,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Image picker
+            GestureDetector(
+              onTap: _pickImage,
+              child: _selectedImage != null
+                  ? Image.file(_selectedImage!, height: 200, width: double.infinity, fit: BoxFit.cover)
+                  : Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  ...(_recipeSuggestions!['ingredients'] as List<dynamic>).map(
-                        (ingredient) => ListTile(
-                      leading: const Icon(Icons.check_circle,
-                          color: Color(0xFF2E7D32)),
-                      title: Text(ingredient['name']),
-                      subtitle:
-                      Text("Quantity: ${ingredient['quantity']}"),
-                    ),
-                  ),
-                ],
-              ),
             ),
-        ],
+            const SizedBox(height: 20),
+
+            // Upload button
+            ElevatedButton.icon(
+              onPressed: _uploadImage,
+              icon: const Icon(Icons.upload),
+              label: const Text('Upload Image'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Loading indicator
+            if (_isLoading)
+              const CircularProgressIndicator(),
+
+            // Report display
+            if (_report != null && !_isLoading)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _report!.length,
+                  itemBuilder: (context, index) {
+                    final item = _report![index];
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item['name'] ?? 'Unknown',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text('Weight: ${item['weight_in_grams']} g'),
+                            Text('Calories: ${item['calories']}'),
+                            Text('Fats: ${item['fats']}'),
+                            Text('Carbs: ${item['carbs']}'),
+                            Text('Protein: ${item['protein']}'),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Ingredients: ${item['ingredients']}',
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

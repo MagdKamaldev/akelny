@@ -101,7 +101,7 @@ class MyApp extends StatelessWidget {
         '/signin': (context) => const SignInScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/mainNavigation': (context) => const MainNavigationPage(), // Main navigation hub
-        '/leftoverManagement': (context) => const LeftoverManagementScreen(), // Leftover Management
+        '/leftoverManagement': (context) => LeftoverReportScreen(), // Leftover Management
         '/chatbot': (context) => WebSocketTestScreen(), // Chatbot Screen
         '/editProfile': (context) => EditProfileScreen(
           userData: {

@@ -65,7 +65,7 @@ class MainNavigationPageState extends State<MainNavigationPage> {
         return "Aklny";
     }
   }
-  
+
   List<Widget> _buildTopActions() {
     if (_currentIndex == 0) {
       return [
@@ -89,7 +89,7 @@ class MainNavigationPageState extends State<MainNavigationPage> {
     final List<Widget> pages = [
       HomeScreen(onSave: _saveRecipe),
       SavedScreen(),
-      const LeftoverManagementScreen(),
+      LeftoverReportScreen(),
       RecommendedRecipes(
         onSave: (Map<String, dynamic> recipe) {},
       ),
