@@ -60,16 +60,18 @@ class AuthService {
     }
   }
 
-  Future<Map<String,dynamic>> getRecipeDetails(String name)async{
-    final response = await http.get(
-      Uri.parse("$getRecipeDetailsUrl$name/"),
-    );
-    
-    if (_handleResponse(response, 'Fetch User Data')) {
-      return Map<String, dynamic>.from(jsonDecode(response.body));
-    }
-    throw Exception("Failed to fetch user data.");
+Future<Map<String, dynamic>> getRecipeDetails(String name) async {
+  final token = await getToken(); // Retrieve the authentication token
+  final response = await http.get(
+    Uri.parse("$getRecipeDetailsUrl$name/"),
+    headers: {'Authorization': 'Bearer $token'}, // Add the token to headers
+  );
+  print(response.body);
+  if (_handleResponse(response, 'Fetch Recipe Details')) {
+    return Map<String, dynamic>.from(jsonDecode(response.body));
   }
+  throw Exception("Failed to fetch recipe details.");
+}
 
   Future<Map<String, dynamic>> getUserData() async {
     final token = await getToken();
@@ -124,7 +126,7 @@ class AuthService {
         "recipe_name" : name
       }),
     );
-    if (_handleResponse(response, 'Sign-In')) {
+    if (_handleResponse(response, 'Save recipe')) {
        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('saved successfully')),
       );

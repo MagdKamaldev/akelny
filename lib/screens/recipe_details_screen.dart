@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:graduation/core/auth_service.dart';
@@ -24,45 +22,59 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    getRecipe(widget.name);
+    fetchRecipeDetails();
   }
 
-  Future<void> getRecipe(String name) async {
+  Future<void> fetchRecipeDetails() async {
     try {
-      final data = await AuthService().getRecipeDetails(name);
+      final data = await AuthService().getRecipeDetails(widget.name);
       setState(() {
         recipe = data;
-        isSaved = data["is_saved"];
+        isSaved = data["is_saved"] ?? false; // Initialize isSaved from API
+        print("isSaved: $isSaved"); // Debugging
       });
-      print("dataaa ${data["is_saved"]}");
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch: $error')),
+        SnackBar(content: Text('Failed to fetch recipe: $error')),
       );
     }
   }
 
-  void saveRecipe(context) {
-    // TODO: Implement your API call to save the recipe here.
-    AuthService().saveRecipe(recipe!['name'],context);
-    setState(() {
-      isSaved = !isSaved; // Toggle the save state for UI feedback.
-    });
+  Future<void> toggleSaveRecipe() async {
+    try {
+      if (isSaved) {
+        await AuthService().unsaveRecipe(recipe!['name']);
+      } else {
+        await AuthService().saveRecipe(recipe!['name'], context);
+      }
+      setState(() {
+        isSaved = !isSaved; // Toggle the save state
+        recipe!["is_saved"] = isSaved; // Update recipe data
+      });
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update save status: $error')),
+      );
+    }
   }
 
   void rateRecipe(double rating) {
-    // TODO: Implement your API call to send the rating here.
     setState(() {
-      userRating = rating; // Update the local rating for UI feedback.
+      userRating = rating; // Update local rating for UI feedback
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('You rated this recipe $rating stars!')),
     );
+
+    // TODO: Implement API call to send the rating
   }
 
-  Widget buildSection(
-      {required String title, required String content, IconData? icon}) {
+  Widget buildSection({
+    required String title,
+    required String content,
+    IconData? icon,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15.0),
       child: Column(
@@ -70,8 +82,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
         children: [
           Row(
             children: [
-              Icon(icon ?? Icons.info,
-                  color: const Color(0xFF2E7D32), size: 28),
+              Icon(icon ?? Icons.info, color: const Color(0xFF2E7D32), size: 28),
               const SizedBox(width: 10),
               Text(
                 title,
@@ -139,9 +150,8 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                         borderRadius: BorderRadius.circular(15),
                         child: Image.network(
                           recipe!['image'] != null
-                              ?
-                          "$baseUrl${recipe!['image']}" :
-                              "https://theninjacue.com/wp-content/uploads/2024/04/13-erin_hungsberg-0r4a3413-ninjacue-oven-baby-back-ribs-24-768x960.jpg",
+                              ? "$baseUrl${recipe!['image']}"
+                              : "https://theninjacue.com/wp-content/uploads/2024/04/13-erin_hungsberg-0r4a3413-ninjacue-oven-baby-back-ribs-24-768x960.jpg",
                           width: double.infinity,
                           height: 200,
                           fit: BoxFit.cover,
@@ -191,12 +201,10 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                           children: [
                             IconButton(
                               icon: Icon(
-                                Icons.bookmark,
+                                isSaved ? Icons.bookmark : Icons.bookmark_border,
                                 color: const Color(0xFF2E7D32),
                               ),
-                              onPressed: (){
-                                saveRecipe(context);
-                              },
+                              onPressed: toggleSaveRecipe,
                             ),
                             const Text('Save'),
                           ],
@@ -205,9 +213,8 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                           children: [
                             DropdownButton<double>(
                               value: userRating,
-                              items:
-                                  List.generate(6, (index) => index.toDouble())
-                                      .map((rating) {
+                              items: List.generate(6, (index) => index.toDouble())
+                                  .map((rating) {
                                 return DropdownMenuItem(
                                   value: rating,
                                   child: Text('$rating stars'),
