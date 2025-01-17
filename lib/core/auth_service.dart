@@ -7,8 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
-const String baseUrl = 'http://0.0.0.0:8000';
-// 192.168.1.9
+const String baseUrl = 'http://192.168.1.5:8000';
 
 class AuthService {
   static const String signUpUrl = '$baseUrl/api/signup/';

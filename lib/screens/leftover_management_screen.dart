@@ -46,7 +46,7 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://0.0.0.0:8000/api/generate-leftover-report/'),
+        Uri.parse('$base64Url/api/generate-leftover-report/'),
       );
       request.headers.addAll(
         {'Authorization': 'Bearer $token'}
