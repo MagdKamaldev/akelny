@@ -8,10 +8,10 @@ class AddRecipeFormScreen extends StatefulWidget {
   const AddRecipeFormScreen({super.key, required this.imagePath});
 
   @override
-  _AddRecipeFormScreenState createState() => _AddRecipeFormScreenState();
+  AddRecipeFormScreenState createState() => AddRecipeFormScreenState();
 }
 
-class _AddRecipeFormScreenState extends State<AddRecipeFormScreen> {
+class AddRecipeFormScreenState extends State<AddRecipeFormScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController categoryController = TextEditingController();
   final TextEditingController ratingController = TextEditingController();

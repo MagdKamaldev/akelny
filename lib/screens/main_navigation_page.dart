@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:graduation/core/auth_service.dart';
 import 'package:graduation/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'saved_screen.dart';
@@ -39,12 +38,6 @@ class MainNavigationPageState extends State<MainNavigationPage> {
       if (!savedRecipes.contains(recipe)) {
         savedRecipes.add(recipe);
       }
-    });
-  }
-
-  void _unsaveRecipe(Map<String, dynamic> recipe) {
-    setState(() {
-      savedRecipes.remove(recipe);
     });
   }
 

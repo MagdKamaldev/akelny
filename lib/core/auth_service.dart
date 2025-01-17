@@ -145,14 +145,27 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
     throw Exception("Failed to fetch saved recipes.");
   }
 
-  Future<void> unsaveRecipe(String recipeId) async {
-    final token = await getToken();
-    final response = await http.delete(
-      Uri.parse('$unsaveRecipeUrl$recipeId/'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    _logResponse(response, 'Unsave Recipe');
+  Future<void> unsaveRecipe(String recipeName,BuildContext context) async {
+  final token = await getToken(); // Retrieve the authentication token
+  final headers = {
+    'Authorization': 'Bearer $token', // Include the token in headers
+    'Content-Type': 'application/json; charset=UTF-8',
+  };
+
+  final response = await http.delete(
+    Uri.parse(unsaveRecipeUrl), // Use the unsaveRecipeUrl
+    headers: headers,
+    body: jsonEncode({'name': recipeName}), // Send the recipe name in the body
+  );
+
+  if (_handleResponse(response, 'Unsave Recipe')) {
+     ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Unsaved successfully")),
+      );
+  } else {
+    throw Exception("Failed to unsave recipe.");
   }
+}
 
   Future<Map<String, dynamic>> uploadImage(File file) async {
     final token = await getToken();
@@ -165,20 +178,6 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
       return jsonDecode(responseBody);
     }
     throw Exception("Failed to upload image.");
-  }
-
-  Future<String> sendMessageToChatbot(String message) async {
-    final token = await getToken();
-    final headers = await _headers();
-    final response = await http.post(
-      Uri.parse(chatbotUrl),
-      headers: headers,
-      body: jsonEncode({'message': message}),
-    );
-    if (_handleResponse(response, 'Chatbot Interaction')) {
-      return jsonDecode(response.body)['response'];
-    }
-    throw Exception("Failed to communicate with the chatbot.");
   }
 
   Future<void> saveToken(String token) async {

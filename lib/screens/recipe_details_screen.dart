@@ -43,7 +43,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   Future<void> toggleSaveRecipe() async {
     try {
       if (isSaved) {
-        await AuthService().unsaveRecipe(recipe!['name']);
+        await AuthService().unsaveRecipe(recipe!['name'],context);
       } else {
         await AuthService().saveRecipe(recipe!['name'], context);
       }
