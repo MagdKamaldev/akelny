@@ -7,7 +7,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
-const String baseUrl = 'http://192.168.1.5:8000';
+const String ip = "192.168.1.5";
+
+const String baseUrl = 'http://$ip:8000';
 
 class AuthService {
   static const String signUpUrl = '$baseUrl/api/signup/';
@@ -21,11 +23,11 @@ class AuthService {
   static const String unsaveRecipeUrl = '$baseUrl/api/unsave-recipe/';
   static const String imageUploadUrl = '$baseUrl/api/image-upload/';
   static const String chatbotUrl = '$baseUrl/api/chatbot/';
-  static const String recipesUrl = '$baseUrl/api/recipes/';  // For fetching all recipes
+  static const String recipesUrl = '$baseUrl/api/recipes/';
 
   final logger = Logger();
 
-  Future<void> signUp(String username, String password, {String? email, Map<String, String>? additionalData}) async {
+  Future<void> signUp(String username, String password, String confirmPass,{String? email, Map<String, String>? additionalData}) async {
     final headers = await _headers();
     final response = await http.post(
       Uri.parse(signUpUrl),
@@ -33,6 +35,7 @@ class AuthService {
       body: jsonEncode({
         'username': username,
         'password': password,
+        "password2" : confirmPass,
         'email': email,
         if (additionalData != null) ...additionalData,
       }),

@@ -1,6 +1,8 @@
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:graduation/core/auth_service.dart';
 import 'package:graduation/main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -46,7 +48,7 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('$base64Url/api/generate-leftover-report/'),
+        Uri.parse('$baseUrl/api/generate-leftover-report/'),
       );
       request.headers.addAll(
         {'Authorization': 'Bearer $token'}
@@ -56,8 +58,6 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
       );
 
       final response = await request.send();
-
-      print(response.statusCode);
 
       if (response.statusCode == 200) {
         final responseData = await response.stream.bytesToString();

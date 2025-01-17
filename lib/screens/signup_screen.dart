@@ -61,6 +61,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         await authService.signUp(
           usernameController.text,
           passwordController.text,
+          confirmPasswordController.text,
           email: emailController.text.isNotEmpty ? emailController.text : null,
           additionalData: {
             'first_name': firstNameController.text,
