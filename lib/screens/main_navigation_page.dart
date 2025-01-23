@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:graduation/screens/add_recipe.dart';
 import 'package:graduation/screens/home_screen.dart';
 import 'package:graduation/screens/search_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -139,6 +140,19 @@ class MainNavigationPageState extends State<MainNavigationPage> {
         index: _currentIndex,
         children: pages,
       ),
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                 Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CreateRecipeScreen()),
+            );
+              },
+              // ignore: sort_child_properties_last
+              child: Icon(Icons.add,color: Colors.white,),
+              backgroundColor: const Color(0xFF2E7D32),
+            )
+          : null,
 
       // Persistent Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(

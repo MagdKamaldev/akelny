@@ -271,6 +271,29 @@ class AuthService {
     }
   }
 
+  Future<void> createRecipe(Map<String, dynamic> recipeData, BuildContext context) async {
+  final token = await getToken();
+  final headers = {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/json; charset=UTF-8',
+  };
+
+  final response = await http.post(
+    Uri.parse('$baseUrl/api/create-recipe/'),
+    headers: headers,
+    body: jsonEncode(recipeData),
+  );
+
+  if (_handleResponse(response, 'Create Recipe')) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Recipe created successfully!')),
+    );
+    Navigator.pop(context); // Return to the previous screen
+  } else {
+    throw Exception("Failed to create recipe.");
+  }
+}
+
   // Centralized headers generation
   Future<Map<String, String>> _headers({bool isJsonType = true}) async {
     final token = await getToken();

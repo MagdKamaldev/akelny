@@ -3,9 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:graduation/core/auth_service.dart';
-import 'package:graduation/screens/camera_screen.dart';
 import 'package:graduation/screens/recipe_details_screen.dart';
-import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   final Function(Map<String, dynamic>) onSave;
@@ -62,16 +60,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragEnd: (DragEndDetails details) {
-        if (details.primaryVelocity! < 0) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CameraScreen()),
-          );
-        }
-      },
-      child: SafeArea(
+    return  SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : Column(
@@ -100,7 +89,6 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-      ),
     );
   }
 
