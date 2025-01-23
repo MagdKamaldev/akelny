@@ -125,8 +125,8 @@ class _RecommendedRecipesState extends State<RecommendedRecipes> {
                           const Icon(Icons.star, color: Colors.amber, size: 16),
                           const SizedBox(width: 5),
                           Text(
-                            recipe['rating'] != null
-                                ? '${recipe['rating']} stars'
+                            recipe['average_rating'] != null
+                                ? '${recipe['average_rating']} stars'
                                 : 'No ratings',
                             style: GoogleFonts.lato(
                               fontSize: 14,

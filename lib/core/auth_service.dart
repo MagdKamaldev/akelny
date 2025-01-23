@@ -7,8 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
-const String ip = "192.168.1.5";
-
+const String ip = "192.168.1.2";
 const String baseUrl = 'http://$ip:8000';
 
 class AuthService {
@@ -24,10 +23,12 @@ class AuthService {
   static const String imageUploadUrl = '$baseUrl/api/image-upload/';
   static const String chatbotUrl = '$baseUrl/api/chatbot/';
   static const String recipesUrl = '$baseUrl/api/recipes/';
+  static const String rateRecipeUrl = '$baseUrl/api/recipes/rate/';
+  static const String searchRecipesUrl = '$baseUrl/api/search-recipes/';
 
   final logger = Logger();
 
-  Future<void> signUp(String username, String password, String confirmPass,{String? email, Map<String, String>? additionalData}) async {
+  Future<void> signUp(String username, String password, String confirmPass, {String? email, Map<String, String>? additionalData}) async {
     final headers = await _headers();
     final response = await http.post(
       Uri.parse(signUpUrl),
@@ -35,7 +36,7 @@ class AuthService {
       body: jsonEncode({
         'username': username,
         'password': password,
-        "password2" : confirmPass,
+        "password2": confirmPass,
         'email': email,
         if (additionalData != null) ...additionalData,
       }),
@@ -43,7 +44,7 @@ class AuthService {
     _logResponse(response, 'Sign-Up');
   }
 
-  Future<void> signIn(String usernameOrEmail, String password,BuildContext context) async {
+  Future<void> signIn(String usernameOrEmail, String password, BuildContext context) async {
     final headers = await _headers();
     final response = await http.post(
       Uri.parse(signInUrl),
@@ -60,18 +61,18 @@ class AuthService {
     }
   }
 
-Future<Map<String, dynamic>> getRecipeDetails(String name) async {
-  final token = await getToken(); // Retrieve the authentication token
-  final response = await http.get(
-    Uri.parse("$getRecipeDetailsUrl$name/"),
-    headers: {'Authorization': 'Bearer $token'}, // Add the token to headers
-  );
-  print(response.body);
-  if (_handleResponse(response, 'Fetch Recipe Details')) {
-    return Map<String, dynamic>.from(jsonDecode(response.body));
+  Future<Map<String, dynamic>> getRecipeDetails(String name) async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse("$getRecipeDetailsUrl$name/"),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    print(response.body);
+    if (_handleResponse(response, 'Fetch Recipe Details')) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception("Failed to fetch recipe details.");
   }
-  throw Exception("Failed to fetch recipe details.");
-}
 
   Future<Map<String, dynamic>> getUserData() async {
     final token = await getToken();
@@ -79,14 +80,14 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
       Uri.parse(userProfileUrl),
       headers: {'Authorization': 'Bearer $token'},
     );
-    
+
     if (_handleResponse(response, 'Fetch User Data')) {
       return Map<String, dynamic>.from(jsonDecode(response.body));
     }
     throw Exception("Failed to fetch user data.");
   }
 
-  Future<void> updateUserData(Map<String, dynamic> updatedData,BuildContext context) async {
+  Future<void> updateUserData(Map<String, dynamic> updatedData, BuildContext context) async {
     final headers = await _headers();
     final response = await http.put(
       Uri.parse(updateUserProfileUrl),
@@ -105,11 +106,11 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getRecommendedRecipes() async{
+  Future<List<Map<String, dynamic>>> getRecommendedRecipes() async {
     final headers = await _headers();
     final response = await http.get(
       Uri.parse(recommendedRecipesUrl),
-      headers: headers, 
+      headers: headers,
     );
     if (_handleResponse(response, 'Fetch Recommended Recipes')) {
       return List<Map<String, dynamic>>.from(jsonDecode(response.body));
@@ -117,18 +118,18 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
     throw Exception("Failed to fetch recommended recipes.");
   }
 
-  Future<void> saveRecipe(String name,BuildContext context) async {
-   final headers = await _headers();
+  Future<void> saveRecipe(String name, BuildContext context) async {
+    final headers = await _headers();
     final response = await http.post(
       Uri.parse(saveRecipeUrl),
       headers: headers,
       body: jsonEncode({
-        "recipe_name" : name
+        "recipe_name": name,
       }),
     );
     if (_handleResponse(response, 'Save recipe')) {
-       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('saved successfully')),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saved successfully')),
       );
     }
   }
@@ -145,27 +146,27 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
     throw Exception("Failed to fetch saved recipes.");
   }
 
-  Future<void> unsaveRecipe(String recipeName,BuildContext context) async {
-  final token = await getToken(); // Retrieve the authentication token
-  final headers = {
-    'Authorization': 'Bearer $token', // Include the token in headers
-    'Content-Type': 'application/json; charset=UTF-8',
-  };
+  Future<void> unsaveRecipe(String recipeName, BuildContext context) async {
+    final token = await getToken();
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json; charset=UTF-8',
+    };
 
-  final response = await http.delete(
-    Uri.parse(unsaveRecipeUrl), // Use the unsaveRecipeUrl
-    headers: headers,
-    body: jsonEncode({'name': recipeName}), // Send the recipe name in the body
-  );
+    final response = await http.delete(
+      Uri.parse(unsaveRecipeUrl),
+      headers: headers,
+      body: jsonEncode({'name': recipeName}),
+    );
 
-  if (_handleResponse(response, 'Unsave Recipe')) {
-     ScaffoldMessenger.of(context).showSnackBar(
+    if (_handleResponse(response, 'Unsave Recipe')) {
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Unsaved successfully")),
       );
-  } else {
-    throw Exception("Failed to unsave recipe.");
+    } else {
+      throw Exception("Failed to unsave recipe.");
+    }
   }
-}
 
   Future<Map<String, dynamic>> uploadImage(File file) async {
     final token = await getToken();
@@ -195,13 +196,68 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
     await prefs.remove('auth_token');
   }
 
-  // New method to fetch all recipes
   Future<List<Map<String, dynamic>>> fetchRecipes() async {
-    final response = await http.get(Uri.parse(recipesUrl),);
+    final response = await http.get(Uri.parse(recipesUrl));
     if (_handleResponse(response, 'Fetch Recipes')) {
       return List<Map<String, dynamic>>.from(json.decode(response.body));
     }
     return [];
+  }
+
+  Future<void> rateRecipe(String name, double rating, BuildContext context) async {
+    final token = await getToken();
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json; charset=UTF-8',
+    };
+
+    final response = await http.post(
+      Uri.parse(rateRecipeUrl),
+      headers: headers,
+      body: jsonEncode({
+        'name': name,
+        'rating': rating,
+      }),
+    );
+
+    if (_handleResponse(response, 'Rate Recipe')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Rated successfully")),
+      );
+    } else {
+      throw Exception("Failed to rate recipe.");
+    }
+  }
+
+  // Search Recipes
+  Future<List<Map<String, dynamic>>> searchRecipes({
+    String? keyword,
+    String? category,
+    double? rating,
+    String? sortBy,
+  }) async {
+    final token = await getToken();
+    final headers = {
+      'Authorization': 'Bearer $token',
+    };
+
+    // Build query parameters
+    final queryParams = {
+      if (keyword != null) 'keyword': keyword,
+      if (category != null) 'category': category,
+      if (rating != null) 'rating': rating.toString(),
+      if (sortBy != null) 'sort_by': sortBy,
+    };
+
+    final response = await http.get(
+      Uri.parse(searchRecipesUrl).replace(queryParameters: queryParams),
+      headers: headers,
+    );
+
+    if (_handleResponse(response, 'Search Recipes')) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    }
+    throw Exception("Failed to fetch search results.");
   }
 
   // Centralized response handling
@@ -217,16 +273,16 @@ Future<Map<String, dynamic>> getRecipeDetails(String name) async {
 
   // Centralized headers generation
   Future<Map<String, String>> _headers({bool isJsonType = true}) async {
-  final token = await getToken();
-  final headers = <String, String>{};
-  if (token != null) {
-    headers['Authorization'] = 'Bearer $token';
+    final token = await getToken();
+    final headers = <String, String>{};
+    if (token != null) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    if (isJsonType) {
+      headers['Content-Type'] = 'application/json; charset=UTF-8';
+    }
+    return headers;
   }
-  if (isJsonType) {
-    headers['Content-Type'] = 'application/json; charset=UTF-8';
-  }
-  return headers;
-}
 
   // Helper method to log responses
   void _logResponse(http.Response response, String action) {

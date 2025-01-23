@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:graduation/screens/home_screen.dart';
+import 'package:graduation/screens/search_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'saved_screen.dart';
 import 'leftover_management_screen.dart';
@@ -60,9 +61,8 @@ class MainNavigationPageState extends State<MainNavigationPage> {
   }
 
   List<Widget> _buildTopActions() {
-    if (_currentIndex == 0) {
-      return [
-        IconButton(
+    return [
+       IconButton(
           icon: Icon(Icons.chat_outlined,color: Colors.white,),
           onPressed: () {
             Navigator.push(
@@ -71,9 +71,16 @@ class MainNavigationPageState extends State<MainNavigationPage> {
             );
           },
         ),
-      ];
-    }
-    return [];
+        IconButton(
+        icon: Icon(Icons.search,color: Colors.white,),
+        onPressed: () {
+           Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SearchScreen()),
+            );
+        },
+      ),
+    ];
   }
 
   @override
@@ -109,13 +116,14 @@ class MainNavigationPageState extends State<MainNavigationPage> {
         backgroundColor: const Color(0xFF2E7D32),
         elevation: 0,
         toolbarHeight: 56,
+        centerTitle: true,
         leading: IconButton(
             onPressed: () async {
               Navigator.pushReplacementNamed(context, '/signin');
               SharedPreferences prefs = await SharedPreferences.getInstance();
               prefs.remove("auth_token");
             },
-            icon: Icon(Icons.logout)),
+            icon: Icon(Icons.logout,color: Colors.white,)),
         title: Text(
           _getAppBarTitle(),
           style: const TextStyle(

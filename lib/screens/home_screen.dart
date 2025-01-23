@@ -78,95 +78,7 @@ class HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Search and Filter Section
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        TextField(
-                          onChanged: (value) {
-                            setState(() {
-                              searchText = value;
-                              _applyFilters();
-                            });
-                          },
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: searchText.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear),
-                                    onPressed: () {
-                                      setState(() {
-                                        searchText = '';
-                                        _applyFilters();
-                                      });
-                                    },
-                                  )
-                                : null,
-                            hintText: 'Search recipes...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        DropdownButton<String>(
-                          isExpanded: true,
-                          value: selectedCategory,
-                          items: ['All', 'Arabic', 'Italian', 'Asian', 'Other']
-                              .map(
-                                  (String category) => DropdownMenuItem<String>(
-                                        value: category,
-                                        child: Text(category),
-                                      ))
-                              .toList(),
-                          onChanged: (String? value) {
-                            setState(() {
-                              selectedCategory = value!;
-                              _applyFilters();
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        DropdownButton<double>(
-                          isExpanded: true,
-                          value: selectedRating,
-                          items: [
-                            DropdownMenuItem<double>(
-                              value: 0.0,
-                              child: const Text('All Ratings'),
-                            ),
-                            DropdownMenuItem<double>(
-                              value: 5.0,
-                              child: const Text('5 stars'),
-                            ),
-                            DropdownMenuItem<double>(
-                              value: 4.0,
-                              child: const Text('4 stars and up'),
-                            ),
-                            DropdownMenuItem<double>(
-                              value: 3.0,
-                              child: const Text('3 stars and up'),
-                            ),
-                            DropdownMenuItem<double>(
-                              value: 2.0,
-                              child: const Text('2 stars and up'),
-                            ),
-                            DropdownMenuItem<double>(
-                              value: 1.0,
-                              child: const Text('1 star and up'),
-                            ),
-                          ],
-                          onChanged: (double? value) {
-                            setState(() {
-                              selectedRating = value!;
-                              _applyFilters();
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                 
                   Expanded(
                     child: displayedRecipes.isEmpty
                         ? Center(
@@ -261,28 +173,25 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ],
-                        ),
-                        // Rating
+                        ),   
                         Row(
-                          children: [
-                            const Icon(Icons.star,
-                                color: Colors.amber, size: 16),
-                            const SizedBox(width: 5),
-                            Text(
-                              recipe['rating'] != null
-                                  ? '${recipe['rating']} stars'
-                                  : 'No ratings',
-                              style: GoogleFonts.lato(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 16),
+                          const SizedBox(width: 5),
+                          Text(
+                            recipe['average_rating'] != null
+                                ? '${recipe['average_rating']} stars'
+                                : 'No ratings',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              color: Colors.grey[600],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
                       ],
                     ),
                     const SizedBox(height: 10),
-
                     // Action Buttons (Like and Save)
                   ],
                 ),

@@ -31,7 +31,6 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
       setState(() {
         recipe = data;
         isSaved = data["is_saved"] ?? false; // Initialize isSaved from API
-        print("isSaved: $isSaved"); // Debugging
       });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -58,16 +57,11 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
     }
   }
 
-  void rateRecipe(double rating) {
+  void rateRecipe(double rating,String name,BuildContext context) {
+    AuthService().rateRecipe(name, rating,context);
     setState(() {
-      userRating = rating; // Update local rating for UI feedback
+      userRating = rating;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('You rated this recipe $rating stars!')),
-    );
-
-    // TODO: Implement API call to send the rating
   }
 
   Widget buildSection({
@@ -222,7 +216,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                               }).toList(),
                               onChanged: (value) {
                                 if (value != null) {
-                                  rateRecipe(value);
+                                  rateRecipe(value,recipe!['name'],context);
                                 }
                               },
                             ),
@@ -238,6 +232,11 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
                     title: "Category",
                     content: recipe!['category'] ?? "Unknown",
                     icon: Icons.category,
+                  ),
+                  buildSection(
+                    title: "Rating",
+                    content: recipe!['rate'] ?? "Unknown",
+                    icon: Icons.star,
                   ),
                   buildSection(
                     title: "Serving Size",

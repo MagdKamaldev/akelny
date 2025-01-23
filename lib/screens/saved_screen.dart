@@ -24,7 +24,6 @@ class _SavedRecipesState extends State<SavedScreen> {
     setState(() {
       isLoading = true; // Start loading
     });
-
     try {
       final savedRecipes = await AuthService().getSavedRecipes();
       setState(() {
@@ -40,6 +39,7 @@ class _SavedRecipesState extends State<SavedScreen> {
         isLoading = false; // Stop loading
       });
     }
+    print(recipes);
   }
 
   @override
@@ -143,25 +143,24 @@ class _SavedRecipesState extends State<SavedScreen> {
                             ),
                           ],
                         ),
-                        // Rating
                         Row(
-                          children: [
-                            const Icon(Icons.star,
-                                color: Colors.amber, size: 16),
-                            const SizedBox(width: 5),
-                            Text(
-                              recipe['average_rating'] != null
-                                  ? '${recipe['average_rating']} stars'
-                                  : 'No ratings',
-                              style: GoogleFonts.lato(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 16),
+                          const SizedBox(width: 5),
+                          Text(
+                            recipe['average_rating'] != null
+                                ? '${recipe['average_rating']} stars'
+                                : 'No ratings',
+                            style: GoogleFonts.lato(
+                              fontSize: 14,
+                              color: Colors.grey[600],
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
+                      ]
                     ),
+                    
                   ],
                 ),
               ),
