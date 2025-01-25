@@ -58,7 +58,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
   }
 
   void rateRecipe(double rating,String name,BuildContext context) {
-    AuthService().rateRecipe(name, rating,context);
+    AuthService().rateRecipe(name, rating, context);
     setState(() {
       userRating = rating;
     });

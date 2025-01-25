@@ -39,7 +39,6 @@ class _SavedRecipesState extends State<SavedScreen> {
         isLoading = false; // Stop loading
       });
     }
-    print(recipes);
   }
 
   @override
@@ -149,7 +148,7 @@ class _SavedRecipesState extends State<SavedScreen> {
                           const SizedBox(width: 5),
                           Text(
                             recipe['average_rating'] != null
-                                ? '${recipe['average_rating']} stars'
+                                ? '${double.parse(recipe['average_rating'].toString()).toStringAsFixed(2)} stars'
                                 : 'No ratings',
                             style: GoogleFonts.lato(
                               fontSize: 14,

@@ -20,7 +20,7 @@ class _WebSocketTestScreenState extends State<WebSocketTestScreen> {
     super.initState();
     channel = WebSocketChannel.connect(
       Uri.parse(
-          'ws://127.0.0.1:8000/api/chatbot/'
+          'ws://172.20.10.2:8000/api/chatbot/'
           ), 
     );
 

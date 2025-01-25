@@ -20,6 +20,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController dietaryPreferencesController;
   late TextEditingController allergiesController;
   late TextEditingController cookingSkillLevelController;
+  late TextEditingController DateOfBirthController;
+
 
   final AuthService authService = AuthService(); // Initialize AuthService
   bool isLoading = false;
@@ -36,6 +38,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     allergiesController = TextEditingController(text: widget.userData['allergies']);
     cookingSkillLevelController =
         TextEditingController(text: widget.userData['cooking_skill_level']);
+        DateOfBirthController = TextEditingController(text: widget.userData['date_of_birth']);
   }
 
   // Save updated data to the backend
@@ -52,6 +55,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'dietary_preferences': dietaryPreferencesController.text,
       'allergies': allergiesController.text,
       'cooking_skill_level': cookingSkillLevelController.text,
+      'date_of_birth': DateOfBirthController.text,
     };
 
    
@@ -87,6 +91,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildTextField('Allergies', allergiesController, maxLines: 3),
             const SizedBox(height: 10),
             _buildTextField('Cooking Skill Level', cookingSkillLevelController),
+            const SizedBox(height: 10),
+            _buildTextField('Date of Birth', DateOfBirthController, keyboardType: TextInputType.datetime),
+            const SizedBox(height: 10),
             const SizedBox(height: 20),
             isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -130,6 +137,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     dietaryPreferencesController.dispose();
     allergiesController.dispose();
     cookingSkillLevelController.dispose();
+    DateOfBirthController.dispose();
     super.dispose();
   }
 }

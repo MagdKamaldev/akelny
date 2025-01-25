@@ -18,43 +18,50 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
   bool _isLoading = false;
   List<dynamic>? _report;
 
-  // Function to pick an image from camera or gallery
+  // Function to pick an image
   Future<void> _pickImage() async {
     final picker = ImagePicker();
 
-    // Show a dialog to let the user choose between camera and gallery
-    final source = await showDialog<ImageSource>(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Image Source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take Photo'),
+                onTap: () async {
+                  final pickedFile = await picker.pickImage(source: ImageSource.camera);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _selectedImage = File(pickedFile.path);
+                      _report = null; // Clear previous report
+                    });
+                  }
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () async {
+                  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                  if (pickedFile != null) {
+                    setState(() {
+                      _selectedImage = File(pickedFile.path);
+                      _report = null; // Clear previous report
+                    });
+                  }
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
-
-    if (source == null) return; // User canceled the dialog
-
-    final pickedFile = await picker.pickImage(source: source);
-
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-        _report = null; // Clear previous report
-      });
-    }
   }
 
   // Function to upload the image and get the response
@@ -76,7 +83,7 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
         Uri.parse('$baseUrl/api/generate-leftover-report/'),
       );
       request.headers.addAll(
-        {'Authorization': 'Bearer $token'},
+        {'Authorization': 'Bearer $token'}
       );
       request.files.add(
         await http.MultipartFile.fromPath('image', _selectedImage!.path),
@@ -108,6 +115,10 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Leftover Report'),
+        backgroundColor: Colors.green,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -116,21 +127,12 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
             GestureDetector(
               onTap: _pickImage,
               child: _selectedImage != null
-                  ? Image.file(
-                      _selectedImage!,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
+                  ? Image.file(_selectedImage!, height: 200, width: double.infinity, fit: BoxFit.cover)
                   : Container(
                       height: 200,
                       width: double.infinity,
                       color: Colors.grey[200],
-                      child: const Icon(
-                        Icons.add_a_photo,
-                        size: 50,
-                        color: Colors.grey,
-                      ),
+                      child: const Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
                     ),
             ),
             const SizedBox(height: 20),
@@ -146,7 +148,8 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
             const SizedBox(height: 20),
 
             // Loading indicator
-            if (_isLoading) const CircularProgressIndicator(),
+            if (_isLoading)
+              const CircularProgressIndicator(),
 
             // Report display
             if (_report != null && !_isLoading)
@@ -179,7 +182,9 @@ class _LeftoverReportScreenState extends State<LeftoverReportScreen> {
                             const SizedBox(height: 8),
                             Text(
                               'Ingredients: ${item['ingredients']}',
-                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            Text(
+                              'Food waste management: ${item['food_waste_management']}',
                             ),
                           ],
                         ),

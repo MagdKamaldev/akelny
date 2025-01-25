@@ -44,20 +44,6 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _applyFilters() {
-    setState(() {
-      displayedRecipes = recipes.where((recipe) {
-        final matchesSearchText =
-            recipe['title'].toLowerCase().contains(searchText.toLowerCase());
-        final matchesCategory =
-            selectedCategory == 'All' || recipe['category'] == selectedCategory;
-        final matchesRating = recipe['rating'] >= selectedRating;
-
-        return matchesSearchText && matchesCategory && matchesRating;
-      }).toList();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return  SafeArea(
@@ -168,7 +154,7 @@ class HomeScreenState extends State<HomeScreen> {
                           const SizedBox(width: 5),
                           Text(
                             recipe['average_rating'] != null
-                                ? '${recipe['average_rating']} stars'
+                                ? '${double.parse(recipe['average_rating'].toString()).toStringAsFixed(2)} stars'
                                 : 'No ratings',
                             style: GoogleFonts.lato(
                               fontSize: 14,

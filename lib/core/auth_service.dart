@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
-const String ip = "192.168.1.2";
+const String ip = "172.20.10.2";
 const String baseUrl = 'http://$ip:8000';
 
 class AuthService {
@@ -67,7 +67,6 @@ class AuthService {
       Uri.parse("$getRecipeDetailsUrl$name/"),
       headers: {'Authorization': 'Bearer $token'},
     );
-    print(response.body);
     if (_handleResponse(response, 'Fetch Recipe Details')) {
       return Map<String, dynamic>.from(jsonDecode(response.body));
     }
